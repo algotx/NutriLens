@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "NutriLens",
+    "slug": "nutrilens",
+    "version": "1.0.0",
+    "scheme": "nutrilens",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#0F172A"
+    },
+    "ios": { "supportsTablet": false },
+    "android": { "adaptiveIcon": { "backgroundColor": "#0F172A" } },
+    "plugins": [
+      "expo-router",
+      ["expo-camera", { "cameraPermission": "Allow NutriLens to access your camera to log food." }],
+      ["expo-image-picker", { "photosPermission": "Allow NutriLens to access your photos to log food." }]
+    ]
+  }
+}
