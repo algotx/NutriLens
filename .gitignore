@@ -1,0 +1,88 @@
+# Backend (Java/Maven)
+target/
+*.class
+*.jar
+*.war
+*.nar
+*.zip
+*.tar.gz
+*.rar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.bak
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.iml
+*.out
+
+# Frontend (Node.js/Expo)
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.expo/
+.expo-shared/
+dist/
+build/
+.next/
+.vercel/
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings
+.factorypath
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Local development
+.venv/
+venv/
+env/
+
+# Build and test artifacts
+*.pyc
+__pycache__/
+.pytest_cache/
+coverage/
+.nyc_output/
