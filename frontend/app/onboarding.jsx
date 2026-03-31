@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { profileAPI } from '../lib/api';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { colors, spacing, radius } from '../constants/theme';
+import { colors } from '../constants/theme';
+import { rf, rp, rr, rs, sp, TOP_INSET, MAX_WIDTH } from '../lib/responsive';
 
 const STEPS = ['About You', 'Body Stats', 'Your Goal', 'Diet Preference'];
 
@@ -70,7 +71,6 @@ export default function Onboarding() {
   const submit = async () => {
     setLoading(true);
     try {
-      // Convert imperial → metric for the backend
       const heightCm = parseFloat(form.height_in) * 2.54;
       const weightKg = parseFloat(form.weight_lbs) * 0.453592;
       const goalWeightKg = form.goal_weight_lbs
@@ -94,86 +94,83 @@ export default function Onboarding() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        {/* Progress */}
-        <View style={styles.progressRow}>
-          {STEPS.map((s, i) => (
-            <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
-          ))}
-        </View>
-        <Text style={styles.stepLabel}>Step {step + 1} of {STEPS.length}</Text>
-        <Text style={styles.title}>{STEPS[step]}</Text>
+        <View style={styles.inner}>
+          <View style={styles.progressRow}>
+            {STEPS.map((_, i) => (
+              <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
+            ))}
+          </View>
+          <Text style={styles.stepLabel}>Step {step + 1} of {STEPS.length}</Text>
+          <Text style={styles.title}>{STEPS[step]}</Text>
 
-        {/* Step 0 — About You */}
-        {step === 0 && (
-          <View>
-            <Input label="Age" value={form.age} onChangeText={set('age')} keyboardType="numeric" placeholder="25" />
-            <Text style={styles.fieldLabel}>Gender</Text>
-            <View style={styles.row}>
-              {['male', 'female'].map((g) => (
-                <OptionCard key={g} label={g === 'male' ? '♂ Male' : '♀ Female'}
-                  selected={form.gender === g} onPress={() => set('gender')(g)} />
+          {step === 0 && (
+            <View>
+              <Input label="Age" value={form.age} onChangeText={set('age')} keyboardType="numeric" placeholder="25" />
+              <Text style={styles.fieldLabel}>Gender</Text>
+              <View style={styles.row}>
+                {['male', 'female'].map((g) => (
+                  <OptionCard key={g} label={g === 'male' ? '♂ Male' : '♀ Female'}
+                    selected={form.gender === g} onPress={() => set('gender')(g)} />
+                ))}
+              </View>
+              <Text style={styles.fieldLabel}>Activity Level</Text>
+              {ACTIVITY_OPTIONS.map((o) => (
+                <OptionCard key={o.value} label={o.label} desc={o.desc}
+                  selected={form.activity_level === o.value} onPress={() => set('activity_level')(o.value)} />
               ))}
             </View>
-            <Text style={styles.fieldLabel}>Activity Level</Text>
-            {ACTIVITY_OPTIONS.map((o) => (
-              <OptionCard key={o.value} label={o.label} desc={o.desc}
-                selected={form.activity_level === o.value} onPress={() => set('activity_level')(o.value)} />
-            ))}
-          </View>
-        )}
-
-        {/* Step 1 — Body Stats */}
-        {step === 1 && (
-          <View>
-            <Input label="Height (inches)" value={form.height_in} onChangeText={set('height_in')}
-              keyboardType="decimal-pad" placeholder="70" />
-            <Input label="Current Weight (lbs)" value={form.weight_lbs} onChangeText={set('weight_lbs')}
-              keyboardType="decimal-pad" placeholder="165" />
-            <Input label="Goal Weight (lbs) — optional" value={form.goal_weight_lbs} onChangeText={set('goal_weight_lbs')}
-              keyboardType="decimal-pad" placeholder="155" />
-          </View>
-        )}
-
-        {/* Step 2 — Goal */}
-        {step === 2 && (
-          <View>
-            <Text style={styles.fieldLabel}>What's your goal?</Text>
-            {GOAL_OPTIONS.map((o) => (
-              <OptionCard key={o.value} label={o.label} desc={o.desc}
-                selected={form.goal === o.value} onPress={() => set('goal')(o.value)} />
-            ))}
-            {form.goal !== 'maintain' && (
-              <>
-                <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>Weekly pace</Text>
-                {WEEKLY_GOALS.map((o) => (
-                  <OptionCard key={o.value} label={o.label} desc={o.desc}
-                    selected={form.weekly_goal_kg === o.value} onPress={() => set('weekly_goal_kg')(o.value)} />
-                ))}
-              </>
-            )}
-          </View>
-        )}
-
-        {/* Step 3 — Diet */}
-        {step === 3 && (
-          <View>
-            <Text style={styles.fieldLabel}>Dietary preference</Text>
-            {DIET_OPTIONS.map((o) => (
-              <OptionCard key={o.value} label={o.label}
-                selected={form.dietary_preference === o.value} onPress={() => set('dietary_preference')(o.value)} />
-            ))}
-          </View>
-        )}
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-
-        <View style={styles.btnRow}>
-          {step > 0 && (
-            <Button title="Back" variant="outline" onPress={() => setStep(step - 1)}
-              style={{ flex: 1, marginRight: spacing.sm }} />
           )}
-          <Button title={step === STEPS.length - 1 ? 'Calculate My Macros' : 'Next'}
-            onPress={next} loading={loading} style={{ flex: 1 }} />
+
+          {step === 1 && (
+            <View>
+              <Input label="Height (inches)" value={form.height_in} onChangeText={set('height_in')}
+                keyboardType="decimal-pad" placeholder="70" />
+              <Input label="Current Weight (lbs)" value={form.weight_lbs} onChangeText={set('weight_lbs')}
+                keyboardType="decimal-pad" placeholder="165" />
+              <Input label="Goal Weight (lbs) — optional" value={form.goal_weight_lbs} onChangeText={set('goal_weight_lbs')}
+                keyboardType="decimal-pad" placeholder="155" />
+            </View>
+          )}
+
+          {step === 2 && (
+            <View>
+              <Text style={styles.fieldLabel}>What's your goal?</Text>
+              {GOAL_OPTIONS.map((o) => (
+                <OptionCard key={o.value} label={o.label} desc={o.desc}
+                  selected={form.goal === o.value} onPress={() => set('goal')(o.value)} />
+              ))}
+              {form.goal !== 'maintain' && (
+                <>
+                  <Text style={[styles.fieldLabel, { marginTop: sp.md }]}>Weekly pace</Text>
+                  {WEEKLY_GOALS.map((o) => (
+                    <OptionCard key={o.value} label={o.label} desc={o.desc}
+                      selected={form.weekly_goal_kg === o.value} onPress={() => set('weekly_goal_kg')(o.value)} />
+                  ))}
+                </>
+              )}
+            </View>
+          )}
+
+          {step === 3 && (
+            <View>
+              <Text style={styles.fieldLabel}>Dietary preference</Text>
+              {DIET_OPTIONS.map((o) => (
+                <OptionCard key={o.value} label={o.label}
+                  selected={form.dietary_preference === o.value} onPress={() => set('dietary_preference')(o.value)} />
+              ))}
+            </View>
+          )}
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <View style={styles.btnRow}>
+            {step > 0 && (
+              <Button title="Back" variant="outline" onPress={() => setStep(step - 1)}
+                style={{ flex: 1, marginRight: sp.sm }} />
+            )}
+            <Button title={step === STEPS.length - 1 ? 'Calculate My Macros' : 'Next'}
+              onPress={next} loading={loading} style={{ flex: 1 }} />
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -181,22 +178,33 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: colors.bg, padding: spacing.lg, paddingTop: 60 },
-  progressRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm },
-  progressDot: { flex: 1, height: 4, borderRadius: 2, backgroundColor: colors.border },
+  container: {
+    flexGrow: 1,
+    backgroundColor: colors.bg,
+    alignItems: 'center',
+    paddingTop: TOP_INSET + rp(10),
+    paddingBottom: rp(40),
+  },
+  inner: {
+    width: '100%',
+    maxWidth: MAX_WIDTH,
+    paddingHorizontal: sp.lg,
+  },
+  progressRow: { flexDirection: 'row', gap: rp(8), marginBottom: sp.sm },
+  progressDot: { flex: 1, height: rp(4), borderRadius: 2, backgroundColor: colors.border },
   progressDotActive: { backgroundColor: colors.primary },
-  stepLabel: { color: colors.textMuted, fontSize: 13, marginBottom: spacing.xs },
-  title: { color: colors.text, fontSize: 26, fontWeight: '700', marginBottom: spacing.lg },
-  fieldLabel: { color: colors.textMuted, fontSize: 13, marginBottom: spacing.sm },
-  row: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  stepLabel: { color: colors.textMuted, fontSize: rf(13), marginBottom: sp.xs },
+  title: { color: colors.text, fontSize: rf(26), fontWeight: '700', marginBottom: sp.lg },
+  fieldLabel: { color: colors.textMuted, fontSize: rf(13), marginBottom: sp.sm },
+  row: { flexDirection: 'row', gap: sp.sm, marginBottom: sp.md },
   optCard: {
-    flex: 1, backgroundColor: colors.card, borderRadius: radius.md,
-    borderWidth: 1.5, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.sm,
+    flex: 1, backgroundColor: colors.card, borderRadius: rr.md,
+    borderWidth: 1.5, borderColor: colors.border, padding: sp.md, marginBottom: sp.sm,
   },
   optCardSelected: { borderColor: colors.primary, backgroundColor: '#1e1b4b' },
-  optLabel: { color: colors.text, fontWeight: '600', fontSize: 14 },
+  optLabel: { color: colors.text, fontWeight: '600', fontSize: rf(14) },
   optLabelSelected: { color: colors.primaryLight },
-  optDesc: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  error: { color: colors.danger, fontSize: 13, textAlign: 'center', marginVertical: spacing.sm },
-  btnRow: { flexDirection: 'row', marginTop: spacing.lg },
+  optDesc: { color: colors.textMuted, fontSize: rf(12), marginTop: 2 },
+  error: { color: colors.danger, fontSize: rf(13), textAlign: 'center', marginVertical: sp.sm },
+  btnRow: { flexDirection: 'row', marginTop: sp.lg },
 });

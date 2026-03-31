@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { mealsAPI, profileAPI, insightsAPI } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import MacroRing from '../../components/MacroRing';
-import { colors, spacing, radius, shadow } from '../../constants/theme';
+import { colors, shadow } from '../../constants/theme';
+import { rf, rp, rr, rs, sp, TOP_INSET } from '../../lib/responsive';
 
-// ── helpers ──────────────────────────────────────────────────────────────────
 function toDateStr(d) { return d.toISOString().split('T')[0]; }
 function addDays(dateStr, n) {
   const d = new Date(dateStr + 'T12:00:00');
@@ -23,18 +23,16 @@ function formatDateLabel(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-// ── sub-components ────────────────────────────────────────────────────────────
 function DateNav({ date, onPrev, onNext, onToday }) {
   const today = toDateStr(new Date());
   const isToday = date === today;
   return (
     <View style={styles.dateNav}>
       <TouchableOpacity style={styles.dateNavArrow} onPress={onPrev} activeOpacity={0.7}>
-        <Ionicons name="chevron-back" size={20} color={colors.text} />
+        <Ionicons name="chevron-back" size={rf(20)} color={colors.text} />
       </TouchableOpacity>
-
       <TouchableOpacity style={styles.dateNavCenter} onPress={isToday ? undefined : onToday} activeOpacity={isToday ? 1 : 0.7}>
-        <Ionicons name="calendar-outline" size={14} color={colors.primaryLight} />
+        <Ionicons name="calendar-outline" size={rf(14)} color={colors.primaryLight} />
         <Text style={styles.dateNavLabel}>{formatDateLabel(date)}</Text>
         {!isToday && (
           <View style={styles.todayBadge}>
@@ -42,19 +40,17 @@ function DateNav({ date, onPrev, onNext, onToday }) {
           </View>
         )}
       </TouchableOpacity>
-
       <TouchableOpacity
         style={[styles.dateNavArrow, isToday && styles.dateNavArrowDisabled]}
         onPress={isToday ? undefined : onNext}
         activeOpacity={isToday ? 1 : 0.7}
       >
-        <Ionicons name="chevron-forward" size={20} color={isToday ? colors.textMuted : colors.text} />
+        <Ionicons name="chevron-forward" size={rf(20)} color={isToday ? colors.textMuted : colors.text} />
       </TouchableOpacity>
     </View>
   );
 }
 
-// ── Weekly chart ─────────────────────────────────────────────────────────────
 function WeeklyChart({ data, goal }) {
   if (!data || data.length === 0) return null;
   const max = Math.max(...data.map(d => d.calories), goal, 1);
@@ -73,7 +69,6 @@ function WeeklyChart({ data, goal }) {
             <View key={i} style={styles.chartBarCol}>
               <Text style={styles.chartCalLabel}>{d.calories > 0 ? Math.round(d.calories / 100) * 100 : ''}</Text>
               <View style={styles.chartBarBg}>
-                {/* Goal line */}
                 <View style={[styles.chartGoalLine, { bottom: `${goalPct * 100}%` }]} />
                 <View style={[
                   styles.chartBar,
@@ -93,7 +88,7 @@ function WeeklyChart({ data, goal }) {
           <Text style={styles.chartLegendText}>Calories</Text>
         </View>
         <View style={styles.chartLegendItem}>
-          <View style={[styles.chartLegendDot, { backgroundColor: `${colors.warning}80`, width: 16, height: 2, borderRadius: 1 }]} />
+          <View style={[styles.chartLegendDot, { backgroundColor: `${colors.warning}80`, width: rp(16), height: 2, borderRadius: 1 }]} />
           <Text style={styles.chartLegendText}>Goal</Text>
         </View>
       </View>
@@ -101,15 +96,14 @@ function WeeklyChart({ data, goal }) {
   );
 }
 
-// ── Water tracker ─────────────────────────────────────────────────────────────
 const WATER_GOAL = 8;
 function WaterTracker({ glasses, onAdd, onRemove }) {
   const pct = Math.min(glasses / WATER_GOAL, 1);
   return (
     <View style={styles.waterCard}>
       <View style={styles.cardHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="water" size={16} color={colors.accent} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: rp(8) }}>
+          <Ionicons name="water" size={rf(16)} color={colors.accent} />
           <Text style={styles.cardTitle}>Water Intake</Text>
         </View>
         <Text style={styles.cardSub}>{glasses}/{WATER_GOAL} glasses</Text>
@@ -117,11 +111,7 @@ function WaterTracker({ glasses, onAdd, onRemove }) {
       <View style={styles.waterGlasses}>
         {Array.from({ length: WATER_GOAL }).map((_, i) => (
           <TouchableOpacity key={i} onPress={() => i < glasses ? onRemove() : onAdd()} activeOpacity={0.7}>
-            <Ionicons
-              name={i < glasses ? 'water' : 'water-outline'}
-              size={28}
-              color={i < glasses ? colors.accent : colors.border}
-            />
+            <Ionicons name={i < glasses ? 'water' : 'water-outline'} size={rf(28)} color={i < glasses ? colors.accent : colors.border} />
           </TouchableOpacity>
         ))}
       </View>
@@ -167,13 +157,11 @@ function MealCard({ meal, onDelete, isPast }) {
   return (
     <View style={styles.mealCard}>
       <View style={[styles.mealIconWrap, { backgroundColor: `${c}20` }]}>
-        <Ionicons name={icon} size={18} color={c} />
+        <Ionicons name={icon} size={rf(18)} color={c} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={styles.mealName}>{meal.food_name}</Text>
-        <Text style={styles.mealMeta}>
-          {meal.serving_size ? `${meal.serving_size} · ` : ''}{meal.meal_type}
-        </Text>
+        <Text style={styles.mealMeta}>{meal.serving_size ? `${meal.serving_size} · ` : ''}{meal.meal_type}</Text>
         <View style={styles.mealMacroRow}>
           <Text style={styles.mealCal}>{Math.round(meal.calories)} kcal</Text>
           <Text style={styles.mealMacroChip}>P {Math.round(meal.protein_g)}g</Text>
@@ -183,7 +171,7 @@ function MealCard({ meal, onDelete, isPast }) {
       </View>
       {!isPast && (
         <TouchableOpacity onPress={onDelete} style={styles.deleteBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
+          <Ionicons name="trash-outline" size={rf(16)} color={colors.textMuted} />
         </TouchableOpacity>
       )}
     </View>
@@ -193,14 +181,13 @@ function MealCard({ meal, onDelete, isPast }) {
 function StatPill({ icon, label, value, color }) {
   return (
     <View style={[styles.statPill, { borderColor: `${color}40` }]}>
-      <Ionicons name={icon} size={14} color={color} />
+      <Ionicons name={icon} size={rf(14)} color={color} />
       <Text style={[styles.statPillVal, { color }]}>{value}</Text>
       <Text style={styles.statPillLabel}>{label}</Text>
     </View>
   );
 }
 
-// ── main screen ───────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const todayStr = toDateStr(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -222,21 +209,16 @@ export default function Dashboard() {
         getUser(), profileAPI.get(), mealsAPI.getSummary(d), mealsAPI.getByDate(d),
       ]);
       setUser(u); setProfile(p); setSummary(s); setMeals(m);
-      // Load streak + weekly only when viewing today
       if (d === todayStr) {
         insightsAPI.streak().then(({ data }) => setStreak(data)).catch(() => {});
         insightsAPI.weekly().then(({ data }) => setWeeklyData(data)).catch(() => {});
       }
-    } catch (e) {
-      console.log('Dashboard load error:', e.message);
-    }
+    } catch (e) { console.log('Dashboard load error:', e.message); }
   }, [selectedDate]);
 
   useEffect(() => { loadRef.current = load; }, [load]);
   useEffect(() => { load(selectedDate); }, [selectedDate]);
-
   useFocusEffect(useCallback(() => { loadRef.current?.(); }, []));
-
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener('mealLogged', () => {
       setSelectedDate(todayStr);
@@ -246,7 +228,6 @@ export default function Dashboard() {
   }, []);
 
   const onRefresh = async () => { setRefreshing(true); await load(selectedDate); setRefreshing(false); };
-
   const deleteMeal = (id) => {
     Alert.alert('Delete meal?', 'This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
@@ -271,7 +252,6 @@ export default function Dashboard() {
       <View style={styles.orb1} />
       <View style={styles.orb2} />
 
-      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{isToday ? `${greeting} 👋` : '📅 Viewing past day'}</Text>
@@ -286,7 +266,6 @@ export default function Dashboard() {
         )}
       </View>
 
-      {/* Date navigator */}
       <DateNav
         date={selectedDate}
         onPrev={() => setSelectedDate(d => addDays(d, -1))}
@@ -294,31 +273,29 @@ export default function Dashboard() {
         onToday={() => setSelectedDate(todayStr)}
       />
 
-      {/* Past day banner */}
       {!isToday && (
         <View style={styles.pastBanner}>
-          <Ionicons name="time-outline" size={14} color={colors.warning} />
+          <Ionicons name="time-outline" size={rf(14)} color={colors.warning} />
           <Text style={styles.pastBannerText}>Viewing {formatDateLabel(selectedDate)} — read only</Text>
         </View>
       )}
 
-      {/* Calorie card */}
       <View style={styles.calorieCard}>
         <View style={styles.calorieCardInner}>
           <MacroRing consumed={summary.total_calories} goal={goal} size={170} color={colors.primary} label="kcal" />
           <View style={styles.calorieStats}>
             <View style={styles.calorieStat}>
-              <Text style={styles.calorieStatVal}>{goal}</Text>
+              <Text style={styles.calorieStatVal} numberOfLines={1} adjustsFontSizeToFit>{goal}</Text>
               <Text style={styles.calorieStatLabel}>Goal</Text>
             </View>
             <View style={styles.calorieDivider} />
             <View style={styles.calorieStat}>
-              <Text style={[styles.calorieStatVal, { color: colors.success }]}>{burned}</Text>
+              <Text style={[styles.calorieStatVal, { color: colors.success }]} numberOfLines={1} adjustsFontSizeToFit>{burned}</Text>
               <Text style={styles.calorieStatLabel}>Eaten</Text>
             </View>
             <View style={styles.calorieDivider} />
             <View style={styles.calorieStat}>
-              <Text style={[styles.calorieStatVal, { color: colors.warning }]}>{remaining}</Text>
+              <Text style={[styles.calorieStatVal, { color: colors.warning }]} numberOfLines={1} adjustsFontSizeToFit>{remaining}</Text>
               <Text style={styles.calorieStatLabel}>Left</Text>
             </View>
           </View>
@@ -331,14 +308,12 @@ export default function Dashboard() {
         </View>
       </View>
 
-      {/* Macro pills */}
       <View style={styles.pillRow}>
         <StatPill icon="barbell-outline" label="Protein" value={`${Math.round(summary.total_protein)}g`} color={colors.protein} />
         <StatPill icon="leaf-outline" label="Carbs" value={`${Math.round(summary.total_carbs)}g`} color={colors.carbs} />
         <StatPill icon="water-outline" label="Fat" value={`${Math.round(summary.total_fat)}g`} color={colors.fat} />
       </View>
 
-      {/* Macro bars */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>Macros</Text>
@@ -349,14 +324,12 @@ export default function Dashboard() {
         <MacroBar label="Fat" consumed={summary.total_fat} goal={profile?.daily_fat_g || 0} color={colors.fat} colorLight={colors.fatLight} />
       </View>
 
-      {/* Weekly chart — today only */}
       {isToday && weeklyData.length > 0 && (
         <View style={styles.card}>
           <WeeklyChart data={weeklyData} goal={profile?.daily_calories || 2000} />
         </View>
       )}
 
-      {/* Water tracker — today only */}
       {isToday && (
         <View style={styles.card}>
           <WaterTracker
@@ -367,7 +340,6 @@ export default function Dashboard() {
         </View>
       )}
 
-      {/* Meals */}
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>{isToday ? "Today's Meals" : `${formatDateLabel(selectedDate)}'s Meals`}</Text>
@@ -384,106 +356,102 @@ export default function Dashboard() {
         )}
       </View>
 
-      <View style={{ height: 32 }} />
+      <View style={{ height: rp(32) }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { paddingBottom: 20 },
-  orb1: { position: 'absolute', top: -80, left: -80, width: 260, height: 260, borderRadius: 130, backgroundColor: colors.primaryGlow },
-  orb2: { position: 'absolute', top: 180, right: -100, width: 220, height: 220, borderRadius: 110, backgroundColor: colors.accentGlow },
+  content: { paddingBottom: rp(20) },
+  orb1: { position: 'absolute', top: -rs(80), left: -rs(80), width: rs(260), height: rs(260), borderRadius: rs(130), backgroundColor: colors.primaryGlow },
+  orb2: { position: 'absolute', top: rs(180), right: -rs(100), width: rs(220), height: rs(220), borderRadius: rs(110), backgroundColor: colors.accentGlow },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: spacing.lg, paddingTop: 60, paddingBottom: spacing.sm },
-  greeting: { color: colors.textMuted, fontSize: 14, fontWeight: '500' },
-  userName: { color: colors.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: sp.lg, paddingTop: TOP_INSET + rp(10), paddingBottom: sp.sm },
+  greeting: { color: colors.textMuted, fontSize: rf(14), fontWeight: '500' },
+  userName: { color: colors.text, fontSize: rf(26), fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
 
-  // Date navigator
-  dateNav: { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-  dateNavArrow: { padding: spacing.md, paddingHorizontal: spacing.lg },
+  dateNav: { flexDirection: 'row', alignItems: 'center', marginHorizontal: sp.lg, marginBottom: sp.sm, backgroundColor: colors.card, borderRadius: rr.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+  dateNavArrow: { padding: sp.md, paddingHorizontal: sp.lg },
   dateNavArrowDisabled: { opacity: 0.3 },
-  dateNavCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
-  dateNavLabel: { color: colors.text, fontWeight: '700', fontSize: 15 },
-  todayBadge: { backgroundColor: colors.primaryGlow, borderRadius: radius.full, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: `${colors.primary}40` },
-  todayBadgeText: { color: colors.primaryLight, fontSize: 10, fontWeight: '600' },
+  dateNavCenter: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: rp(6), paddingVertical: sp.md },
+  dateNavLabel: { color: colors.text, fontWeight: '700', fontSize: rf(15) },
+  todayBadge: { backgroundColor: colors.primaryGlow, borderRadius: rr.full, paddingHorizontal: rp(8), paddingVertical: 2, borderWidth: 1, borderColor: `${colors.primary}40` },
+  todayBadgeText: { color: colors.primaryLight, fontSize: rf(10), fontWeight: '600' },
 
-  pastBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, marginHorizontal: spacing.lg, marginBottom: spacing.sm, backgroundColor: `${colors.warning}15`, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 8, borderWidth: 1, borderColor: `${colors.warning}30` },
-  pastBannerText: { color: colors.warning, fontSize: 12, fontWeight: '500' },
+  pastBanner: { flexDirection: 'row', alignItems: 'center', gap: rp(6), marginHorizontal: sp.lg, marginBottom: sp.sm, backgroundColor: `${colors.warning}15`, borderRadius: rr.md, paddingHorizontal: sp.md, paddingVertical: rp(8), borderWidth: 1, borderColor: `${colors.warning}30` },
+  pastBannerText: { color: colors.warning, fontSize: rf(12), fontWeight: '500' },
 
-  calorieCard: { marginHorizontal: spacing.lg, marginBottom: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.borderGlow, ...shadow.lg },
-  calorieCardInner: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginBottom: spacing.md },
+  calorieCard: { marginHorizontal: sp.lg, marginBottom: sp.md, backgroundColor: colors.card, borderRadius: rr.lg, padding: sp.lg, borderWidth: 1, borderColor: colors.borderGlow, ...shadow.lg },
+  calorieCardInner: { flexDirection: 'row', alignItems: 'center', gap: sp.md, marginBottom: sp.md },
   calorieStats: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
-  calorieStat: { alignItems: 'center' },
-  calorieStatVal: { color: colors.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  calorieStatLabel: { color: colors.textMuted, fontSize: 11, marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
-  calorieDivider: { width: 1, height: 36, backgroundColor: colors.border },
+  calorieStat: { alignItems: 'center', flex: 1 },
+  calorieStatVal: { color: colors.text, fontSize: rf(17), fontWeight: '800', letterSpacing: -0.3 },
+  calorieStatLabel: { color: colors.textMuted, fontSize: rf(10), marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
+  calorieDivider: { width: 1, height: rp(32), backgroundColor: colors.border },
 
-  progressBarWrap: { gap: 6 },
-  progressBarBg: { height: 6, backgroundColor: colors.border, borderRadius: 3, overflow: 'hidden' },
+  progressBarWrap: { gap: rp(6) },
+  progressBarBg: { height: rp(6), backgroundColor: colors.border, borderRadius: 3, overflow: 'hidden' },
   progressBarFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 3 },
-  progressLabel: { color: colors.textMuted, fontSize: 11, textAlign: 'right' },
+  progressLabel: { color: colors.textMuted, fontSize: rf(11), textAlign: 'right' },
 
-  pillRow: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.md },
-  statPill: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.card, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, justifyContent: 'center' },
-  statPillVal: { fontSize: 13, fontWeight: '700' },
-  statPillLabel: { color: colors.textMuted, fontSize: 11 },
+  pillRow: { flexDirection: 'row', gap: sp.sm, marginHorizontal: sp.lg, marginBottom: sp.md },
+  statPill: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: rp(5), backgroundColor: colors.card, borderRadius: rr.full, paddingHorizontal: rp(10), paddingVertical: rp(8), borderWidth: 1, justifyContent: 'center' },
+  statPillVal: { fontSize: rf(13), fontWeight: '700' },
+  statPillLabel: { color: colors.textMuted, fontSize: rf(11) },
 
-  card: { marginHorizontal: spacing.lg, marginBottom: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border, ...shadow.sm },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  cardTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
-  cardSub: { color: colors.textMuted, fontSize: 12 },
+  card: { marginHorizontal: sp.lg, marginBottom: sp.md, backgroundColor: colors.card, borderRadius: rr.lg, padding: sp.lg, borderWidth: 1, borderColor: colors.border, ...shadow.sm },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: sp.md },
+  cardTitle: { color: colors.text, fontSize: rf(16), fontWeight: '700' },
+  cardSub: { color: colors.textMuted, fontSize: rf(12) },
 
-  macroBarWrap: { marginBottom: spacing.md },
-  macroBarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  macroBarLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  macroDot: { width: 8, height: 8, borderRadius: 4 },
-  macroBarLabel: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
-  macroBarVal: { fontSize: 13, fontWeight: '700' },
+  macroBarWrap: { marginBottom: sp.md },
+  macroBarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: rp(8) },
+  macroBarLabelRow: { flexDirection: 'row', alignItems: 'center', gap: rp(7) },
+  macroDot: { width: rp(8), height: rp(8), borderRadius: 4 },
+  macroBarLabel: { color: colors.textSecondary, fontSize: rf(13), fontWeight: '500' },
+  macroBarVal: { fontSize: rf(13), fontWeight: '700' },
   macroBarGoal: { color: colors.textMuted, fontWeight: '400' },
-  barBg: { height: 8, backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden' },
+  barBg: { height: rp(8), backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4, overflow: 'hidden' },
   barShine: { position: 'absolute', top: 0, left: 0, right: 0, height: '50%', opacity: 0.3, borderRadius: 4 },
 
-  mealCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
-  mealIconWrap: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  mealName: { color: colors.text, fontWeight: '700', fontSize: 14 },
-  mealMeta: { color: colors.textMuted, fontSize: 11, marginTop: 1, textTransform: 'capitalize' },
-  mealMacroRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  mealCal: { color: colors.primaryLight, fontSize: 12, fontWeight: '700' },
-  mealMacroChip: { color: colors.textMuted, fontSize: 11 },
-  deleteBtn: { padding: 6 },
+  mealCard: { flexDirection: 'row', alignItems: 'center', gap: sp.sm, paddingVertical: rp(12), borderBottomWidth: 1, borderBottomColor: colors.border },
+  mealIconWrap: { width: rs(42), height: rs(42), borderRadius: rs(14), alignItems: 'center', justifyContent: 'center' },
+  mealName: { color: colors.text, fontWeight: '700', fontSize: rf(14) },
+  mealMeta: { color: colors.textMuted, fontSize: rf(11), marginTop: 1, textTransform: 'capitalize' },
+  mealMacroRow: { flexDirection: 'row', alignItems: 'center', gap: rp(6), marginTop: rp(4) },
+  mealCal: { color: colors.primaryLight, fontSize: rf(12), fontWeight: '700' },
+  mealMacroChip: { color: colors.textMuted, fontSize: rf(11) },
+  deleteBtn: { padding: rp(6) },
 
-  emptyState: { alignItems: 'center', paddingVertical: spacing.xl },
-  emptyEmoji: { fontSize: 40, marginBottom: spacing.sm },
-  emptyTitle: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  emptySub: { color: colors.textMuted, fontSize: 13, textAlign: 'center' },
+  emptyState: { alignItems: 'center', paddingVertical: sp.xl },
+  emptyEmoji: { fontSize: rf(40), marginBottom: sp.sm },
+  emptyTitle: { color: colors.text, fontSize: rf(16), fontWeight: '600', marginBottom: 4 },
+  emptySub: { color: colors.textMuted, fontSize: rf(13), textAlign: 'center' },
 
-  // Streak
-  streakChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.cardElevated, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: `${colors.warning}40` },
-  streakFire: { fontSize: 16 },
-  streakNum: { color: colors.warning, fontWeight: '800', fontSize: 18 },
-  streakLabel: { color: colors.textMuted, fontSize: 11 },
+  streakChip: { flexDirection: 'row', alignItems: 'center', gap: rp(4), backgroundColor: colors.cardElevated, borderRadius: rr.full, paddingHorizontal: rp(12), paddingVertical: rp(6), borderWidth: 1, borderColor: `${colors.warning}40` },
+  streakFire: { fontSize: rf(16) },
+  streakNum: { color: colors.warning, fontWeight: '800', fontSize: rf(18) },
+  streakLabel: { color: colors.textMuted, fontSize: rf(11) },
 
-  // Weekly chart
   chartWrap: { gap: 0 },
-  chartBars: { flexDirection: 'row', alignItems: 'flex-end', height: 120, gap: 6, marginBottom: spacing.sm },
-  chartBarCol: { flex: 1, alignItems: 'center', gap: 4 },
-  chartCalLabel: { color: colors.textMuted, fontSize: 8, height: 12 },
-  chartBarBg: { flex: 1, width: '100%', backgroundColor: colors.cardElevated, borderRadius: 6, overflow: 'hidden', justifyContent: 'flex-end', position: 'relative' },
+  chartBars: { flexDirection: 'row', alignItems: 'flex-end', height: rs(120), gap: rp(6), marginBottom: sp.sm },
+  chartBarCol: { flex: 1, alignItems: 'center', gap: rp(4) },
+  chartCalLabel: { color: colors.textMuted, fontSize: rf(8), height: rp(12) },
+  chartBarBg: { flex: 1, width: '100%', backgroundColor: colors.cardElevated, borderRadius: rp(6), overflow: 'hidden', justifyContent: 'flex-end', position: 'relative' },
   chartGoalLine: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: `${colors.warning}60` },
-  chartBar: { width: '100%', backgroundColor: `${colors.primary}80`, borderRadius: 6 },
+  chartBar: { width: '100%', backgroundColor: `${colors.primary}80`, borderRadius: rp(6) },
   chartBarToday: { backgroundColor: colors.primary },
   chartBarEmpty: { backgroundColor: colors.border },
-  chartDayLabel: { color: colors.textMuted, fontSize: 10, fontWeight: '500' },
+  chartDayLabel: { color: colors.textMuted, fontSize: rf(10), fontWeight: '500' },
   chartDayLabelToday: { color: colors.primaryLight, fontWeight: '700' },
-  chartLegend: { flexDirection: 'row', gap: spacing.md },
-  chartLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  chartLegendDot: { width: 8, height: 8, borderRadius: 4 },
-  chartLegendText: { color: colors.textMuted, fontSize: 11 },
+  chartLegend: { flexDirection: 'row', gap: sp.md },
+  chartLegendItem: { flexDirection: 'row', alignItems: 'center', gap: rp(5) },
+  chartLegendDot: { width: rp(8), height: rp(8), borderRadius: 4 },
+  chartLegendText: { color: colors.textMuted, fontSize: rf(11) },
 
-  // Water
-  waterCard: { gap: spacing.sm },
-  waterGlasses: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm },
-  waterLabel: { color: colors.textMuted, fontSize: 12, textAlign: 'center' },
+  waterCard: { gap: sp.sm },
+  waterGlasses: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: sp.sm },
+  waterLabel: { color: colors.textMuted, fontSize: rf(12), textAlign: 'center' },
 });

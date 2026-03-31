@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Keyboa
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { insightsAPI } from '../../lib/api';
-import { colors, spacing, radius, shadow } from '../../constants/theme';
+import { colors, shadow } from '../../constants/theme';
+import { rf, rp, rr, rs, sp, TOP_INSET } from '../../lib/responsive';
 
 const SUGGESTIONS = [
   "Am I eating enough protein?",
@@ -19,7 +20,7 @@ function Message({ msg }) {
     <View style={[styles.msgRow, isUser && styles.msgRowUser]}>
       {!isUser && (
         <View style={styles.avatarWrap}>
-          <Ionicons name="sparkles" size={14} color={colors.primaryLight} />
+          <Ionicons name="sparkles" size={rf(14)} color={colors.primaryLight} />
         </View>
       )}
       <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
@@ -60,15 +61,9 @@ export default function CoachScreen() {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     try {
       const { data } = await insightsAPI.coach(q);
-      setMessages(prev => prev.map(m => m.id === loadingMsg.id
-        ? { ...m, loading: false, text: data.answer }
-        : m
-      ));
+      setMessages(prev => prev.map(m => m.id === loadingMsg.id ? { ...m, loading: false, text: data.answer } : m));
     } catch {
-      setMessages(prev => prev.map(m => m.id === loadingMsg.id
-        ? { ...m, loading: false, text: "Sorry, I couldn't get a response. Try again." }
-        : m
-      ));
+      setMessages(prev => prev.map(m => m.id === loadingMsg.id ? { ...m, loading: false, text: "Sorry, I couldn't get a response. Try again." } : m));
     } finally {
       setLoading(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -76,14 +71,13 @@ export default function CoachScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-      {/* Header */}
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={rp(90)}>
       <View style={styles.header}>
         <View style={styles.orb} />
         <View style={styles.headerInner}>
           <View style={styles.headerLeft}>
             <View style={styles.coachAvatar}>
-              <Ionicons name="sparkles" size={22} color={colors.primaryLight} />
+              <Ionicons name="sparkles" size={rf(22)} color={colors.primaryLight} />
             </View>
             <View>
               <Text style={styles.headerTitle}>AI Coach</Text>
@@ -100,7 +94,6 @@ export default function CoachScreen() {
         </View>
       </View>
 
-      {/* Messages */}
       <ScrollView
         ref={scrollRef}
         style={styles.messages}
@@ -110,13 +103,12 @@ export default function CoachScreen() {
       >
         {messages.map(msg => <Message key={msg.id} msg={msg} />)}
 
-        {/* Suggestions — only show when no conversation yet */}
         {messages.length === 1 && (
           <View style={styles.suggestions}>
             <Text style={styles.suggestionsLabel}>Try asking</Text>
             {SUGGESTIONS.map((s, i) => (
               <TouchableOpacity key={i} style={styles.suggestionChip} onPress={() => send(s)} activeOpacity={0.8}>
-                <Ionicons name="chatbubble-outline" size={13} color={colors.primaryLight} />
+                <Ionicons name="chatbubble-outline" size={rf(13)} color={colors.primaryLight} />
                 <Text style={styles.suggestionText}>{s}</Text>
               </TouchableOpacity>
             ))}
@@ -124,7 +116,6 @@ export default function CoachScreen() {
         )}
       </ScrollView>
 
-      {/* Input */}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
@@ -143,7 +134,7 @@ export default function CoachScreen() {
           disabled={!input.trim() || loading}
           activeOpacity={0.8}
         >
-          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="send" size={18} color="#fff" />}
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="send" size={rf(18)} color="#fff" />}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -151,39 +142,39 @@ export default function CoachScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: 60, paddingBottom: spacing.md, paddingHorizontal: spacing.lg, overflow: 'hidden' },
-  orb: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: colors.primaryGlow },
+  header: { paddingTop: TOP_INSET + rp(10), paddingBottom: sp.md, paddingHorizontal: sp.lg, overflow: 'hidden' },
+  orb: { position: 'absolute', top: -rs(40), right: -rs(40), width: rs(160), height: rs(160), borderRadius: rs(80), backgroundColor: colors.primaryGlow },
   headerInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  coachAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryGlow, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: `${colors.primary}60` },
-  headerTitle: { color: colors.text, fontSize: 20, fontWeight: '800' },
-  headerSub: { color: colors.textMuted, fontSize: 12 },
-  streakChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.cardElevated, borderRadius: radius.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: `${colors.warning}40` },
-  streakFire: { fontSize: 14 },
-  streakNum: { color: colors.warning, fontWeight: '800', fontSize: 15 },
-  streakLabel: { color: colors.textMuted, fontSize: 11 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: sp.sm },
+  coachAvatar: { width: rs(44), height: rs(44), borderRadius: rs(22), backgroundColor: colors.primaryGlow, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: `${colors.primary}60` },
+  headerTitle: { color: colors.text, fontSize: rf(20), fontWeight: '800' },
+  headerSub: { color: colors.textMuted, fontSize: rf(12) },
+  streakChip: { flexDirection: 'row', alignItems: 'center', gap: rp(4), backgroundColor: colors.cardElevated, borderRadius: rr.full, paddingHorizontal: rp(12), paddingVertical: rp(6), borderWidth: 1, borderColor: `${colors.warning}40` },
+  streakFire: { fontSize: rf(14) },
+  streakNum: { color: colors.warning, fontWeight: '800', fontSize: rf(15) },
+  streakLabel: { color: colors.textMuted, fontSize: rf(11) },
 
   messages: { flex: 1 },
-  messagesContent: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl },
+  messagesContent: { padding: sp.lg, gap: sp.md, paddingBottom: sp.xl },
 
-  msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
+  msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: sp.sm },
   msgRowUser: { flexDirection: 'row-reverse' },
-  avatarWrap: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.primaryGlow, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: `${colors.primary}40` },
-  bubble: { maxWidth: '80%', borderRadius: radius.lg, padding: spacing.md },
-  bubbleAI: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
-  bubbleUser: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
-  bubbleText: { color: colors.text, fontSize: 14, lineHeight: 21 },
+  avatarWrap: { width: rs(28), height: rs(28), borderRadius: rs(14), backgroundColor: colors.primaryGlow, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: `${colors.primary}40` },
+  bubble: { maxWidth: '80%', borderRadius: rr.lg, padding: sp.md },
+  bubbleAI: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: rp(4) },
+  bubbleUser: { backgroundColor: colors.primary, borderBottomRightRadius: rp(4) },
+  bubbleText: { color: colors.text, fontSize: rf(14), lineHeight: rf(14) * 1.5 },
   bubbleTextUser: { color: '#fff' },
-  typingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  typingText: { color: colors.textMuted, fontSize: 13 },
+  typingRow: { flexDirection: 'row', alignItems: 'center', gap: sp.sm },
+  typingText: { color: colors.textMuted, fontSize: rf(13) },
 
-  suggestions: { marginTop: spacing.md, gap: spacing.sm },
-  suggestionsLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  suggestionChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.card, borderRadius: radius.md, padding: spacing.sm, paddingHorizontal: spacing.md, borderWidth: 1, borderColor: colors.border },
-  suggestionText: { color: colors.textSecondary, fontSize: 13, flex: 1 },
+  suggestions: { marginTop: sp.md, gap: sp.sm },
+  suggestionsLabel: { color: colors.textMuted, fontSize: rf(12), fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: rp(4) },
+  suggestionChip: { flexDirection: 'row', alignItems: 'center', gap: rp(8), backgroundColor: colors.card, borderRadius: rr.md, padding: sp.sm, paddingHorizontal: sp.md, borderWidth: 1, borderColor: colors.border },
+  suggestionText: { color: colors.textSecondary, fontSize: rf(13), flex: 1 },
 
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm, padding: spacing.md, paddingBottom: spacing.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
-  input: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: 12, color: colors.text, fontSize: 14, borderWidth: 1, borderColor: colors.border, maxHeight: 100 },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', ...shadow.glow },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: sp.sm, padding: sp.md, paddingBottom: sp.lg, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
+  input: { flex: 1, backgroundColor: colors.card, borderRadius: rr.lg, paddingHorizontal: sp.md, paddingVertical: rp(12), color: colors.text, fontSize: rf(14), borderWidth: 1, borderColor: colors.border, maxHeight: rp(100) },
+  sendBtn: { width: rs(44), height: rs(44), borderRadius: rs(22), backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', ...shadow.glow },
   sendBtnDisabled: { backgroundColor: colors.cardElevated, shadowOpacity: 0 },
 });

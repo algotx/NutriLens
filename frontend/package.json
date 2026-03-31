@@ -12,6 +12,7 @@
     "@react-navigation/native": "^7.0.0",
     "axios": "^1.6.7",
     "expo": "~54.0.0",
+    "expo-av": "~16.0.8",
     "expo-camera": "~16.0.0",
     "expo-image-picker": "~16.0.0",
     "expo-router": "~5.0.0",

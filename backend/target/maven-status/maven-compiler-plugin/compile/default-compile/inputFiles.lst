@@ -1,12 +1,16 @@
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\config\SecurityConfig.java
+C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\entity\SavedFood.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\entity\User.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\controller\HealthController.java
+C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\repository\SavedFoodRepository.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\repository\MealLogRepository.java
+C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\controller\InsightsController.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\dto\ProfileRequest.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\dto\MealRequest.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\repository\UserProfileRepository.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\controller\MealController.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\entity\MealLog.java
+C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\controller\SavedFoodController.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\security\JwtUtil.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\dto\AuthRequest.java
 C:\Ukasha\calapp\backend\src\main\java\com\nutrilens\util\MacroCalculator.java

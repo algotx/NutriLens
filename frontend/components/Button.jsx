@@ -1,5 +1,6 @@
 import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { colors, radius, shadow } from '../constants/theme';
+import { rf, rp, rr } from '../lib/responsive';
 
 export default function Button({ title, onPress, loading, variant = 'primary', style, icon }) {
   const isOutline = variant === 'outline';
@@ -32,8 +33,8 @@ export default function Button({ title, onPress, loading, variant = 'primary', s
 
 const styles = StyleSheet.create({
   btn: {
-    borderRadius: radius.md,
-    paddingVertical: 16,
+    borderRadius: rr.md,
+    paddingVertical: rp(16),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -51,9 +52,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.danger,
   },
-  inner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  inner: { flexDirection: 'row', alignItems: 'center', gap: rp(8) },
   iconWrap: { marginRight: 2 },
-  text: { color: '#fff', fontWeight: '700', fontSize: 16, letterSpacing: 0.3 },
+  text: { color: '#fff', fontWeight: '700', fontSize: rf(16), letterSpacing: 0.3 },
   textOutline: { color: colors.primaryLight },
   textDanger: { color: colors.danger },
 });

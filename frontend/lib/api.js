@@ -44,9 +44,15 @@ export const mealsAPI = {
   analyzePhoto: (formData) =>
     api.post('/meals/analyze-photo', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000, // 60s — Gemini can be slow
+      timeout: 60000,
     }),
   lookupBarcode: (barcode) => api.get(`/meals/barcode/${barcode}`),
+  scanRecipe: (formData) =>
+    api.post('/meals/scan-recipe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    }),
+  voiceLog: (transcript, audioBase64) => api.post('/meals/voice-log', { transcript: transcript || '', audio_base64: audioBase64 || '' }),
 };
 
 export const savedFoodsAPI = {
@@ -59,6 +65,9 @@ export const insightsAPI = {
   weekly: () => api.get('/insights/weekly'),
   streak: () => api.get('/insights/streak'),
   coach: (question) => api.post('/insights/coach', { question }),
+  mealPlan: () => api.post('/insights/meal-plan', {}, { timeout: 90000 }),
+  suggestions: () => api.get('/insights/suggestions', { timeout: 60000 }),
+  weeklyReport: () => api.get('/insights/weekly-report', { timeout: 60000 }),
 };
 
 export default api;

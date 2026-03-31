@@ -52,11 +52,12 @@ public class MealController {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiKey;
 
         String respBody = null;
-        for (int attempt = 0; attempt < 3; attempt++) {
+        int[] delays = {5000, 10000, 20000};
+        for (int attempt = 0; attempt < 4; attempt++) {
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
-                .timeout(java.time.Duration.ofSeconds(30))
+                .timeout(java.time.Duration.ofSeconds(60))
                 .POST(HttpRequest.BodyPublishers.ofString(bodyJson))
                 .build();
             HttpClient client = HttpClient.newBuilder()
@@ -65,8 +66,13 @@ public class MealController {
             HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
             respBody = resp.body();
             System.out.println("Gemini status: " + resp.statusCode() + " attempt: " + (attempt + 1));
-            if (resp.statusCode() != 503) break;
-            Thread.sleep(2000);
+            if (resp.statusCode() == 200) break;
+            if ((resp.statusCode() == 429 || resp.statusCode() == 503) && attempt < delays.length) {
+                System.out.println("Gemini rate limit/overload — waiting " + delays[attempt] + "ms");
+                Thread.sleep(delays[attempt]);
+            } else {
+                break;
+            }
         }
 
         String text = extractGeminiText(respBody);
@@ -311,5 +317,117 @@ public class MealController {
             if (m.getUser().getId().equals(userId)) mealRepo.delete(m);
         });
         return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    // ── Recipe Scanner ────────────────────────────────────────────────────────
+    @PostMapping("/scan-recipe")
+    public ResponseEntity<?> scanRecipe(@RequestParam("image") MultipartFile file,
+                                        Authentication auth) throws Exception {
+        if (file.isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "No image provided"));
+
+        String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+        String mimeType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
+
+        String prompt = "You are a nutrition expert. This image shows a recipe (text, card, screenshot, or handwritten). "
+            + "Extract ALL ingredients and calculate the total nutrition for the entire recipe AND per serving (assume 4 servings if not specified). "
+            + "Respond ONLY with a valid JSON object, no markdown. "
+            + "Format: {\"recipe_name\":\"name\",\"servings\":4,\"ingredients\":[{\"name\":\"ingredient\",\"amount\":\"100g\"}],"
+            + "\"per_serving\":{\"calories\":0,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0,\"fiber_g\":0},"
+            + "\"total\":{\"calories\":0,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0,\"fiber_g\":0}}";
+
+        String bodyJson = "{\"contents\":[{\"parts\":["
+            + "{\"text\":" + toJsonString(prompt) + "},"
+            + "{\"inline_data\":{\"mime_type\":" + toJsonString(mimeType) + ",\"data\":" + toJsonString(base64) + "}}"
+            + "]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":1024,"
+            + "\"thinkingConfig\":{\"thinkingBudget\":0}}}";
+
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiKey;
+        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .timeout(java.time.Duration.ofSeconds(45))
+            .POST(HttpRequest.BodyPublishers.ofString(bodyJson)).build();
+        HttpResponse<String> resp = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(10)).build()
+            .send(req, HttpResponse.BodyHandlers.ofString());
+
+        String text = extractGeminiText(resp.body());
+        if (text == null || text.isEmpty())
+            return ResponseEntity.status(500).body(Map.of("error", "Could not parse recipe"));
+
+        text = text.trim();
+        if (text.startsWith("```")) {
+            int nl = text.indexOf('\n');
+            if (nl >= 0) text = text.substring(nl + 1);
+            if (text.endsWith("```")) text = text.substring(0, text.lastIndexOf("```")).trim();
+        }
+        int jsonStart = text.indexOf("{");
+        int jsonEnd = text.lastIndexOf("}") + 1;
+        if (jsonStart < 0 || jsonEnd <= jsonStart)
+            return ResponseEntity.status(500).body(Map.of("error", "Could not parse recipe data"));
+
+        return ResponseEntity.ok(text.substring(jsonStart, jsonEnd));
+    }
+
+    // ── Voice Log ─────────────────────────────────────────────────────────────
+    @PostMapping("/voice-log")
+    public ResponseEntity<?> voiceLog(@RequestBody Map<String, Object> body, Authentication auth) throws Exception {
+        String transcript = (String) body.getOrDefault("transcript", "");
+        String audioBase64 = (String) body.getOrDefault("audio_base64", "");
+
+        String prompt;
+        String bodyJson;
+        // Use 1.5-flash for text transcript (higher quota), 2.5-flash for audio (multimodal)
+        String url;
+
+        if (!audioBase64.isEmpty()) {
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiKey;
+            prompt = "You are a nutrition expert. The user recorded themselves describing what they ate. "
+                + "Listen to the audio and extract all food items with nutrition estimates. "
+                + "Respond ONLY with a valid JSON array, no markdown. "
+                + "Format: [{\"food_name\":\"name\",\"serving_size\":\"portion\",\"meal_type\":\"breakfast|lunch|dinner|snack\","
+                + "\"calories\":0,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0,\"fiber_g\":0}]";
+            bodyJson = "{\"contents\":[{\"parts\":["
+                + "{\"text\":" + toJsonString(prompt) + "},"
+                + "{\"inline_data\":{\"mime_type\":\"audio/m4a\",\"data\":" + toJsonString(audioBase64) + "}}"
+                + "]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":512}}";
+        } else if (!transcript.isBlank()) {
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiKey;
+            prompt = "You are a nutrition expert. The user described what they ate in natural language. "
+                + "Extract the food items and estimate nutrition. "
+                + "Respond ONLY with a valid JSON array, no markdown. "
+                + "Format: [{\"food_name\":\"name\",\"serving_size\":\"portion\",\"meal_type\":\"breakfast|lunch|dinner|snack\","
+                + "\"calories\":0,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0,\"fiber_g\":0}] "
+                + "If multiple foods are mentioned, return multiple objects. "
+                + "User said: \"" + transcript.replace("\"", "'") + "\"";
+            bodyJson = "{\"contents\":[{\"parts\":[{\"text\":" + toJsonString(prompt) + "}]}],"
+                + "\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":512}}";
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "Provide transcript or audio_base64"));
+        }
+
+        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .timeout(java.time.Duration.ofSeconds(45))
+            .POST(HttpRequest.BodyPublishers.ofString(bodyJson)).build();
+        HttpResponse<String> resp = HttpClient.newBuilder()
+            .connectTimeout(java.time.Duration.ofSeconds(10)).build()
+            .send(req, HttpResponse.BodyHandlers.ofString());
+
+        String text = extractGeminiText(resp.body());
+        if (text == null || text.isEmpty())
+            return ResponseEntity.status(500).body(Map.of("error", "Could not parse food from voice"));
+
+        text = text.trim();
+        if (text.startsWith("```")) {
+            int nl = text.indexOf('\n');
+            if (nl >= 0) text = text.substring(nl + 1);
+            if (text.endsWith("```")) text = text.substring(0, text.lastIndexOf("```")).trim();
+        }
+        int start = text.indexOf("[");
+        int end = text.lastIndexOf("]") + 1;
+        if (start < 0 || end <= start)
+            return ResponseEntity.status(500).body(Map.of("error", "Could not parse food items"));
+
+        return ResponseEntity.ok(text.substring(start, end));
     }
 }
