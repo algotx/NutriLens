@@ -1,4 +1,4 @@
-# CalAI — Nutrition Tracker App
+# Nutrilens — Nutrition Tracker App
 
 ## Setup
 
